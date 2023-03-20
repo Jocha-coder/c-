@@ -1,0 +1,95 @@
+// 赋值运算符，从 C 字符串赋值
+template<class charT, class traits, class Allocator>
+basic_string<charT, traits, Allocator>& basic_string<charT, traits, Allocator>::operator=(const charT* s)
+{
+    // 清空字符串
+    clear();
+    if (s) {
+        // 获取字符串长度
+        size_t len = traits::length(s);
+        if (len > 0) {
+            // 分配内存
+            m_start = allocate(len + 1, get_allocator());
+            // 复制字符串
+            traits::copy(m_start, s, len);
+            // 添加结尾 '\0'
+            traits::assign(m_start[len], charT());
+            // 设置字符串长度和容量
+            m_size = len;
+            m_capacity = len;
+        }
+    }
+    return *this;
+}
+
+// 赋值运算符，从另一个 std::string 对象赋值
+template<class charT, class traits, class Allocator>
+basic_string<charT, traits, Allocator>& basic_string<charT, traits, Allocator>::operator=(const basic_string& str)
+{
+    // 检查自赋值
+    if (&str != this) {
+        // 复制字符串
+        assign(str);
+    }
+    return *this;
+}
+
+// 清空字符串
+template<class charT, class traits, class Allocator>
+void basic_string<charT, traits, Allocator>::clear() noexcept
+{
+    if (m_start) {
+        // 释放内存
+        deallocate(m_start, m_capacity + 1);
+        m_start = nullptr;
+    }
+    m_size = 0;
+    m_capacity = 0;
+}
+
+// 获取 C 字符串指针
+template<class charT, class traits, class Allocator>
+const charT* basic_string<charT, traits, Allocator>::c_str() const noexcept
+{
+    if (m_start) {
+        return m_start;
+    } else {
+        // 返回一个空字符串
+        return traits::null();
+    }
+}
+
+// 获取字符串长度
+template<class charT, class traits, class Allocator>
+typename basic_string<charT, traits, Allocator>::size_type basic_string<charT, traits, Allocator>::size() const noexcept
+{
+    return m_size;
+}
+
+// 获取字符串容量
+template<class charT, class traits, class Allocator>
+typename basic_string<charT, traits, Allocator>::size_type basic_string<charT, traits, Allocator>::capacity() const noexcept
+{
+    return m_capacity;
+}
+
+// 修改字符串容量
+template<class charT, class traits, class Allocator>
+void basic_string<charT, traits, Allocator>::reserve(size_type new_cap)
+{
+    if (new_cap > m_capacity) {
+        // 分配新内存
+        pointer new_start = allocate(new_cap + 1, get_allocator());
+        if (m_start) {
+            // 复制原字符串
+            traits::copy(new_start, m_start, m_size);
+            // 释放原内存
+            deallocate(m_start, m_capacity + 1);
+        }
+        // 添加结尾 '\0'
+        traits::assign(new_start[m_size], charT());
+        // 更新字符串指针和容量
+        m_start = new_start;
+        m_capacity = new_cap;
+    }
+}
